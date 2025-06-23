@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - admin only
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Reports collection - public read, authenticated users can create
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid || 
+        isStaff()
+      );
+      allow delete: if request.auth != null && isStaff();
+    }
+
+    // Municipal data - public read, staff can write
+    match /municipals/{municipalId} {
+      allow read: if true;
+      allow write: if request.auth != null && isStaff();
+    }
+
+    // Municipal admin data - staff only
+    match /municipalAdmins/{adminId} {
+      allow read, write: if request.auth != null && isStaff();
+    }
+
+    // Admin data - admin only
+    match /adminData/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Incident types - public read, staff can write
+    match /incidentTypes/{typeId} {
+      allow read: if true;
+      allow write: if request.auth != null && isStaff();
+    }
+
+    // User preferences - users can access their own
+    match /userPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Helper functions
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isStaff() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'staff'];
+    }
+  }
+} 

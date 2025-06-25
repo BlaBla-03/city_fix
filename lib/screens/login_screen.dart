@@ -63,8 +63,48 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text.trim(),
       );
 
-      // Save FCM token to Firestore (email/password login)
       final user = _auth.currentUser;
+      await user
+          ?.reload(); // Refresh user data to get latest verification status
+
+      if (user != null && !user.emailVerified) {
+        // If email is not verified, show a dialog and sign out
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Email Not Verified'),
+                  content: const Text(
+                    'Please check your inbox and verify your email address to continue.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        await user.sendEmailVerification();
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Verification email sent!'),
+                          ),
+                        );
+                      },
+                      child: const Text('Resend Email'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+          );
+        }
+        await _auth.signOut(); // Sign out the user
+        setState(() => _isLoading = false);
+        return; // Stop the login process
+      }
+
+      // If verified, proceed with saving data and navigating
       if (user != null) {
         final fcmToken = await FirebaseMessaging.instance.getToken();
         if (fcmToken != null) {

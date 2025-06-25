@@ -108,47 +108,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
             password: passwordController.text.trim(),
           );
 
-      // Save FCM token to Firestore
-      final user = userCredential.user;
-      if (user != null) {
-        final fcmToken = await FirebaseMessaging.instance.getToken();
-        if (fcmToken != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({'fcmToken': fcmToken}, SetOptions(merge: true));
-        }
-      }
-
       // Update the user's display name
       await userCredential.user?.updateDisplayName(nameController.text.trim());
 
-      // Create user profile in reporter collection
-      await FirebaseFirestore.instance
-          .collection('reporter')
-          .doc(userCredential.user!.uid)
-          .set({
-            'name': nameController.text.trim(),
-            'email': emailController.text.trim(),
-            'phone': phoneController.text.trim(),
-            'address': '',
-            'uid': userCredential.user!.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-
-      await userCredential.user?.sendEmailVerification();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Verification email sent. Please verify your email before logging in.',
+      // Try to create user profile in Firestore
+      try {
+        await FirebaseFirestore.instance
+            .collection('reporter')
+            .doc(userCredential.user!.uid)
+            .set({
+              'name': nameController.text.trim(),
+              'email': emailController.text.trim(),
+              'phone': phoneController.text.trim(),
+              'address': '',
+              'uid': userCredential.user!.uid,
+              'createdAt': FieldValue.serverTimestamp(),
+              'role': 'user',
+            });
+        await userCredential.user?.sendEmailVerification();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Verification email sent. Please verify your email before logging in.',
+            ),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) Navigator.pop(context);
-      });
+        );
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.pop(context);
+        });
+      } catch (firestoreError) {
+        // If Firestore write fails, delete the Auth user
+        await userCredential.user!.delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not complete signup. Please try again.'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -181,46 +182,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithCredential(credential);
 
-      // Save FCM token to Firestore
-      final user = userCredential.user;
-      if (user != null) {
-        final fcmToken = await FirebaseMessaging.instance.getToken();
-        if (fcmToken != null) {
-          await FirebaseFirestore.instance
-              .collection('reporter')
-              .doc(user.uid)
-              .set({'fcmToken': fcmToken}, SetOptions(merge: true));
-        }
-        // Ensure reporter doc has a role field for Firestore rules
+      // Try to create/update user profile in Firestore
+      try {
         await FirebaseFirestore.instance
             .collection('reporter')
-            .doc(user.uid)
-            .set({'role': 'user'}, SetOptions(merge: true));
+            .doc(userCredential.user!.uid)
+            .set({
+              'name': userCredential.user?.displayName ?? '',
+              'email': userCredential.user?.email ?? '',
+              'phone': userCredential.user?.phoneNumber ?? '',
+              'address': '',
+              'uid': userCredential.user!.uid,
+              'createdAt': FieldValue.serverTimestamp(),
+              'role': 'user',
+            }, SetOptions(merge: true));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google Sign-In Successful'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) Navigator.pop(context);
+        });
+      } catch (firestoreError) {
+        // If Firestore write fails, delete the Auth user
+        await userCredential.user!.delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not complete signup. Please try again.'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
       }
-
-      // Create or update user profile in reporter collection
-      await FirebaseFirestore.instance
-          .collection('reporter')
-          .doc(userCredential.user!.uid)
-          .set({
-            'name': userCredential.user?.displayName ?? '',
-            'email': userCredential.user?.email ?? '',
-            'phone': userCredential.user?.phoneNumber ?? '',
-            'address': '',
-            'uid': userCredential.user!.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Google Sign-In Successful'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted) Navigator.pop(context);
-      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -363,7 +363,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: TextStyle(color: AppTheme.textPrimaryColor),
                   ),
                   style: AppTheme.secondaryButtonStyle.copyWith(
-                    side: MaterialStateProperty.all(
+                    side: WidgetStateProperty.all(
                       BorderSide(
                         color: AppTheme.textSecondaryColor.withOpacity(0.3),
                       ),
@@ -381,10 +381,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.all(
+                        foregroundColor: WidgetStateProperty.all(
                           AppTheme.primaryColor,
                         ),
-                        overlayColor: MaterialStateProperty.all(
+                        overlayColor: WidgetStateProperty.all(
                           Colors.transparent,
                         ),
                       ),

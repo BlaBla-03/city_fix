@@ -14,8 +14,8 @@ class EditProfileScreen extends StatefulWidget {
   // Static method to get a protected instance of EditProfileScreen
   static Widget protected() {
     return const AuthGuard(
-      child: EditProfileScreen(),
-      allowAnonymous: false, // Require authenticated user
+      allowAnonymous: false,
+      child: EditProfileScreen(), // Require authenticated user
     );
   }
 }

@@ -430,7 +430,7 @@ class _IncidentTypeScreenState extends State<IncidentTypeScreen> {
                           _selectedIncidents.isNotEmpty
                               ? AppTheme.primaryButtonStyle
                               : AppTheme.primaryButtonStyle.copyWith(
-                                backgroundColor: MaterialStateProperty.all(
+                                backgroundColor: WidgetStateProperty.all(
                                   AppTheme.textSecondaryColor.withOpacity(0.3),
                                 ),
                               ),

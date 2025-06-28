@@ -64,3 +64,4 @@ coverage/
 *.temp
 
 lib/utils/api_keys.dart
+/android/app/src/main/res/values/api_keys.xml

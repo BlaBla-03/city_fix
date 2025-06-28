@@ -6,8 +6,7 @@ class AuthGuard extends StatelessWidget {
   final Widget child;
   final bool allowAnonymous;
 
-  const AuthGuard({Key? key, required this.child, this.allowAnonymous = false})
-    : super(key: key);
+  const AuthGuard({super.key, required this.child, this.allowAnonymous = false});
 
   @override
   Widget build(BuildContext context) {

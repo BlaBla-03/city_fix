@@ -20,8 +20,8 @@ class HomeScreen extends StatefulWidget {
   // Static method to get a protected instance of HomeScreen
   static Widget protected() {
     return const AuthGuard(
-      child: HomeScreen(),
-      allowAnonymous: false, // Require authenticated (non-anonymous) user
+      allowAnonymous: false,
+      child: HomeScreen(), // Require authenticated (non-anonymous) user
     );
   }
 }
@@ -299,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton(
                 onPressed: () => _navigateTo(1),
                 style: AppTheme.primaryButtonStyle.copyWith(
-                  backgroundColor: MaterialStateProperty.all(
+                  backgroundColor: WidgetStateProperty.all(
                     AppTheme.secondaryColor,
                   ),
                 ),

@@ -12,8 +12,8 @@ class ChangePasswordScreen extends StatefulWidget {
   // Static method to get a protected instance of ChangePasswordScreen
   static Widget protected() {
     return const AuthGuard(
-      child: ChangePasswordScreen(),
-      allowAnonymous: false, // Require authenticated user
+      allowAnonymous: false,
+      child: ChangePasswordScreen(), // Require authenticated user
     );
   }
 }

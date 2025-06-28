@@ -19,8 +19,8 @@ class UserSettingsScreen extends StatefulWidget {
   // Static method to get a protected instance of UserSettingsScreen
   static Widget protected() {
     return const AuthGuard(
-      child: UserSettingsScreen(),
-      allowAnonymous: false, // Require authenticated (non-anonymous) user
+      allowAnonymous: false,
+      child: UserSettingsScreen(), // Require authenticated (non-anonymous) user
     );
   }
 }
@@ -171,7 +171,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
                               ),
                             ),
                         style: AppTheme.primaryButtonStyle.copyWith(
-                          backgroundColor: MaterialStateProperty.all(
+                          backgroundColor: WidgetStateProperty.all(
                             AppTheme.primaryColor.withOpacity(0.8),
                           ),
                         ),

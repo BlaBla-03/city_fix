@@ -112,7 +112,7 @@ class _DescriptionScreenState extends State<DescriptionScreen> {
                     isButtonEnabled
                         ? AppTheme.primaryButtonStyle
                         : AppTheme.primaryButtonStyle.copyWith(
-                          backgroundColor: MaterialStateProperty.all(
+                          backgroundColor: WidgetStateProperty.all(
                             AppTheme.textSecondaryColor.withOpacity(0.3),
                           ),
                         ),

@@ -420,7 +420,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                     (hasMedia && !_isProcessing)
                         ? AppTheme.primaryButtonStyle
                         : AppTheme.primaryButtonStyle.copyWith(
-                          backgroundColor: MaterialStateProperty.all(
+                          backgroundColor: WidgetStateProperty.all(
                             AppTheme.textSecondaryColor.withOpacity(0.3),
                           ),
                         ),

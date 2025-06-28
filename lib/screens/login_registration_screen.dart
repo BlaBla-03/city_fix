@@ -74,7 +74,7 @@ class LoginRegistrationScreen extends StatelessWidget {
                       );
                     },
                     style: AppTheme.primaryButtonStyle.copyWith(
-                      backgroundColor: MaterialStateProperty.all(
+                      backgroundColor: WidgetStateProperty.all(
                         AppTheme.primaryColor.withOpacity(0.8),
                       ),
                     ),

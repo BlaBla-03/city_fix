@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_webservice/places.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/api_keys.dart';
 import '../utils/location_service.dart';
 
 class MapSelectionScreen extends StatefulWidget {
@@ -29,9 +30,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     101.6869,
   ); // default to KL
   final TextEditingController _searchController = TextEditingController();
-  final GoogleMapsPlaces _places = GoogleMapsPlaces(
-    apiKey: 'AIzaSyAEczD0FNOO7w2pQlZTuJ72i4Ec2P4w7c4',
-  );
+  final GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: googleMapsApiKey);
   bool _isLoading = false;
   StreamSubscription<Position>? _positionStreamSubscription;
 

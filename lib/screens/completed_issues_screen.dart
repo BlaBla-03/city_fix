@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../theme/app_theme.dart';
 import 'completed_incident_details_screen.dart';
@@ -17,6 +18,9 @@ class _CompletedIssuesScreenState extends State<CompletedIssuesScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _reportStream;
   bool _isLoading = true;
+
+  // Cache for incident type icon URLs
+  final Map<String, String> _incidentTypeIconUrls = {};
 
   @override
   void initState() {
@@ -44,6 +48,25 @@ class _CompletedIssuesScreenState extends State<CompletedIssuesScreen> {
               .snapshots();
       _isLoading = false;
     });
+  }
+
+  Future<String> _getIncidentIconUrl(String incidentType) async {
+    if (_incidentTypeIconUrls.containsKey(incidentType)) {
+      return _incidentTypeIconUrls[incidentType]!;
+    }
+    final query =
+        await FirebaseFirestore.instance
+            .collection('incidentTypes')
+            .where('name', isEqualTo: incidentType)
+            .get();
+    String url = '';
+    if (query.docs.isNotEmpty) {
+      url = query.docs.first['iconUrl'] ?? '';
+    }
+    setState(() {
+      _incidentTypeIconUrls[incidentType] = url;
+    });
+    return url;
   }
 
   @override
@@ -142,97 +165,125 @@ class _CompletedIssuesScreenState extends State<CompletedIssuesScreen> {
                                       )
                                       : "Unknown date";
 
-                              final icon =
-                                  type.contains("Pothole")
-                                      ? 'assets/images/pothole.png'
-                                      : type.contains("Street")
-                                      ? 'assets/images/streetlight.png'
-                                      : type.contains("Garbage")
-                                      ? 'assets/images/garbage.png'
-                                      : null;
+                              return FutureBuilder<String>(
+                                future: _getIncidentIconUrl(type),
+                                builder: (context, snapshot) {
+                                  final iconUrl = snapshot.data ?? '';
 
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (_) => CompletedIncidentDetailsScreen(
-                                            reportId: reports[index].id,
-                                            reportData: report,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(bottom: 12.0),
-                                  decoration: AppTheme.cardDecoration,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.check_circle,
-                                                    size: 16,
-                                                    color:
-                                                        AppTheme.secondaryColor,
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) =>
+                                                  CompletedIncidentDetailsScreen(
+                                                    reportId: reports[index].id,
+                                                    reportData: report,
                                                   ),
-                                                  const SizedBox(width: 4),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(
+                                        bottom: 12.0,
+                                      ),
+                                      decoration: AppTheme.cardDecoration,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.check_circle,
+                                                        size: 16,
+                                                        color:
+                                                            AppTheme
+                                                                .secondaryColor,
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        type,
+                                                        style: AppTheme
+                                                            .bodyStyle
+                                                            .copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
                                                   Text(
-                                                    type,
-                                                    style: AppTheme.bodyStyle
+                                                    "Reported: $formattedDate",
+                                                    style:
+                                                        AppTheme.captionStyle,
+                                                  ),
+                                                  Text(
+                                                    "Resolved: $resolvedDate",
+                                                    style: AppTheme.captionStyle
                                                         .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                          color:
+                                                              AppTheme
+                                                                  .secondaryColor,
                                                         ),
                                                   ),
                                                 ],
                                               ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                "Reported: $formattedDate",
-                                                style: AppTheme.captionStyle,
+                                            ),
+                                            if (iconUrl.isNotEmpty)
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: iconUrl,
+                                                  width: 40,
+                                                  height: 40,
+                                                  fit: BoxFit.cover,
+                                                  placeholder:
+                                                      (
+                                                        context,
+                                                        url,
+                                                      ) => const SizedBox(
+                                                        width: 40,
+                                                        height: 40,
+                                                        child: Center(
+                                                          child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            color:
+                                                                AppTheme
+                                                                    .primaryColor,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  errorWidget:
+                                                      (context, url, error) =>
+                                                          const Icon(
+                                                            Icons.error,
+                                                            color:
+                                                                AppTheme
+                                                                    .errorColor,
+                                                          ),
+                                                ),
                                               ),
-                                              Text(
-                                                "Resolved: $resolvedDate",
-                                                style: AppTheme.captionStyle
-                                                    .copyWith(
-                                                      color:
-                                                          AppTheme
-                                                              .secondaryColor,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
+                                          ],
                                         ),
-                                        if (icon != null)
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            child: Image.asset(
-                                              icon,
-                                              width: 40,
-                                              height: 40,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
                             },
                           );
